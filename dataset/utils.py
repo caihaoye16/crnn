@@ -3,7 +3,7 @@ import os
 import Image
 import numpy as np
 
-char_list = "0123456789abcdefghijklmnopqrstuvwxyz "
+char_list = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz "
 
 def int64_feature(value):
     """Wrapper for inserting int64 features into Example proto.
@@ -91,7 +91,7 @@ def load_image(img_dir, width = 100, height = 32):
 def char_to_int(char):
     temp = ord(char)
     if temp>=97 and temp<=122:
-        temp = temp-97+10
+        temp = temp-97+10+26
     else:
         if temp >= 65 and temp <= 90:
             temp -= 55
@@ -99,7 +99,7 @@ def char_to_int(char):
             if temp>=48 and temp<=57:
                 temp -= 48
             else:
-                temp = 36
+                temp = 62
     return temp
 
 
@@ -114,13 +114,13 @@ def encode_labels(labels):
     :return:
     把label里面的东西编码，转为可以方便CTC时使用的类型
     """
-    encord_labeles = []
+    encord_labels = []
     lengths = []
     for label in labels:
-        encord_labele = [char_to_int(char) for char in label]
-        encord_labeles.append(encord_labele)
+        encord_label = [char_to_int(char) for char in label]
+        encord_labels.append(encord_label)
         lengths.append(len(label))
-    return encord_labeles,lengths
+    return encord_labels,lengths
 
 
 def encode_label(label):

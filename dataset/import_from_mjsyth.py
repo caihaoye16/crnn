@@ -7,24 +7,33 @@ import glob
 import sys
 from dataset.utils import int64_feature,bytes_feature,load_label_from_imglist,load_image,encode_labels
 
-tf_filename = os.path.join("../tfrecord","mjtrain_690_999.tfrecords")
-imgDir = "../data/mnt/ramdisk/max/696_999/*"#训练时用/*
+tf_filename = os.path.join("../tfrecord","mjtrain_train.tfrecords")
+img_dir = "../data/mnt/ramdisk/max/90kDICT32px/*/*"
 
 
 imgLists = []
 
-Dirs = glob.glob(imgDir)
-imgDirs = []
-for imgDir in Dirs:
-    if os.path.isdir(imgDir):
-        imgDirs.extend(glob.glob(os.path.join(imgDir,"*")))
+# Dirs = glob.glob(img_dir)
+# imgDirs = []
+# for imgDir in Dirs:
+#     if os.path.isdir(imgDir):
+#         imgDirs.extend(glob.glob(os.path.join(imgDir,"*")))
 
-for imgDir in imgDirs:
-    path = os.path.join(imgDir,"*.jpg")
-    imgList = glob.glob(os.path.join(imgDir,"*.jpg"))
-    imgLists.extend(imgList)
+# for imgDir in imgDirs:
+#     path = os.path.join(imgDir,"*.jpg")
+#     imgList = glob.glob(os.path.join(imgDir,"*.jpg"))
+#     imgLists.extend(imgList)
 
-print("一共有%d个文件"%(len(imgLists)))
+# print("一共有%d个文件"%(len(imgLists)))
+
+split_file = "../data/mnt/ramdisk/max/90kDICT32px/annotation_train.txt"
+
+with open(split_file, 'r') as f:
+    line = f.readline()
+    img_file = line.split(' ')[0]
+    imgLists.append(img_file)
+    
+
 
 labels = load_label_from_imglist(imgLists)
 labels_encord,lengths = encode_labels(labels)
