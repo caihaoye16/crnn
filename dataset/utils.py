@@ -1,6 +1,6 @@
 import tensorflow as tf
 import os
-import Image
+from PIL import Image
 import numpy as np
 
 char_list = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz "

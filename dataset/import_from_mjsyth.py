@@ -5,10 +5,10 @@ import tensorflow as tf
 import os
 import glob
 import sys
-from dataset.utils import int64_feature,bytes_feature,load_label_from_imglist,load_image,encode_labels
+from utils import int64_feature,bytes_feature,load_label_from_imglist,load_image,encode_labels
 
 tf_filename = os.path.join("../tfrecord","mjtrain_train.tfrecords")
-img_dir = "../data/mnt/ramdisk/max/90kDICT32px/*/*"
+data_prefix = "../data/mnt/ramdisk/max/90kDICT32px/"
 
 
 imgLists = []
@@ -25,13 +25,13 @@ imgLists = []
 #     imgLists.extend(imgList)
 
 
+split_file = "/home/mark/Downloads/mnt/ramdisk/max/90kDICT32px/annotation_train.txt"
 
-split_file = "../data/mnt/ramdisk/max/90kDICT32px/annotation_train.txt"
 
 with open(split_file, 'r') as f:
-    line = f.readline()
-    img_file = line.split(' ')[0]
-    imgLists.append(img_file)
+    for line in f:
+        img_file = line.split(' ')[0]
+        imgLists.append(os.path.join(data_prefix, img_file))
 
 
 
