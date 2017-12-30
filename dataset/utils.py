@@ -112,7 +112,6 @@ def encode_labels(labels):
     """
     :param labels:
     :return:
-    把label里面的东西编码，转为可以方便CTC时使用的类型
     """
     encord_labels = []
     lengths = []
@@ -127,7 +126,6 @@ def encode_label(label):
     """
     :param labels:
     :return:
-    把label里面的东西编码，转为可以方便CTC时使用的类型
     """
     encord_label = [char_to_int(char) for char in label]
     length = len(label)
