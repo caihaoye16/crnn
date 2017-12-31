@@ -12,13 +12,15 @@ from tensorflow.python import debug as tf_debug
 
 flags = tf.app.flags
 flags.DEFINE_integer("epoch", 25, "Epoch to train [25]")
-flags.DEFINE_float("learning_rate", 0.0002, "Learning rate of for adam [0.0002]")
+flags.DEFINE_float("learning_rate", 0.001, "Learning rate of for adam [0.0002]")
 flags.DEFINE_integer("train_size", np.inf, "The size of train images [np.inf]")
 flags.DEFINE_integer("batch_size", 64, "The size of batch images [64]")
+flags.DEFINE_integer("sample_size", 100, "The size of samples [64]")
 
 flags.DEFINE_string("dataset", "data/h36m/", "Dataset directory.")
 flags.DEFINE_string("logdir", "logs", "Directory to save log")
 flags.DEFINE_string("checkpoint_dir", "checkpoint", "Directory name to save the checkpoints [checkpoint]")
+flags.DEFINE_string("ckpt_file", "model.ckpt", "Checkpoint file")
 
 flags.DEFINE_string("mode", "gan", "Mode to use")
 
@@ -32,8 +34,8 @@ FLAGS = flags.FLAGS
 
 if not os.path.exists(FLAGS.checkpoint_dir):
     os.makedirs(FLAGS.checkpoint_dir)
-if not os.path.exists(FLAGS.sample_dir):
-    os.makedirs(FLAGS.sample_dir)
+# if not os.path.exists(FLAGS.sample_dir):
+#     os.makedirs(FLAGS.sample_dir)
 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
@@ -63,8 +65,8 @@ def main(_):
         # Create global_step.
         global_step = tf.Variable(0, name='global_step', trainable=False)
 
-        tr_file_name = os.path.join("./tfrecord", "mjtrain_train.tfrecords")
-        te_file_name = os.path.join("./tfrecord", "mjtrain_test.tfrecords")
+        tr_file_name = os.path.join("/mnt/sdb/mark/mjsyth", "mjtrain_train.tfrecords")
+        te_file_name = os.path.join("/mnt/sdb/mark/mjsyth", "mjtrain_test.tfrecords")
 
         sh_images, sh_labels, sh_length= read_utils.inputs( filename=[tr_file_name], batch_size=batch_size, num_epochs=num_epochs)
         val_images, val_labels, val_length= read_utils.inputs( filename=[te_file_name], batch_size=batch_size, num_epochs=1000)
