@@ -137,7 +137,7 @@ def main(_):
                 while not coord.should_stop():
                     start_time = time.time()
 
-                    _, merged_t, tr_loss, lr, step = sess.run([optimizer, merged, loss, learning_rate, global_step])
+                    _, merged_t, tr_loss, lr, step, db_lables, db_images, db_logits = sess.run([optimizer, merged, loss, learning_rate, global_step, sh_labels, sh_images, logits])
 
                     duration = time.time() - start_time
 
@@ -145,7 +145,7 @@ def main(_):
                     file_writer.add_summary(merged_t, step)
 
                     # Print an overview fairly often.
-                    if step % 1000 == 0:
+                    if step % 5000 == 0:
                         #######################################################
 
                         val_loss_s, val_acc_s = 0, 0

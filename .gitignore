@@ -49,3 +49,6 @@ Temporary Items
 logs/
 *.pyc
 */*.pyc
+checkpoint/
+*.swp
+*/*.swp

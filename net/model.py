@@ -163,22 +163,22 @@ class CRNNNet(object):
 
         with tf.variable_scope("CRNN_net",reuse=None):
             net = conv2d(inputs, 64, 3, scope='conv1')#input batch_size*32*100*3 #net batch_size *32*100*64
-            net = slim.max_pool2d(net, [2, 2], scope='pool1')#net batch_size *16*50*64
+            net = slim.max_pool2d(net, [2, 2], padding='SAME', scope='pool1')#net batch_size *16*50*64
             print("pool_0 ", net.shape)
             #batch_size*16*50*128
             net = conv2d(net, 128, 3, scope='conv2')
-            net = slim.max_pool2d(net, [2, 2], scope='pool2')#batch_size *8*25*128
+            net = slim.max_pool2d(net, [2, 2], padding='SAME', scope='pool2')#batch_size *8*25*128
             print("pool_1 ", net.shape)
             net = conv2d(net, 256, 3, batchNormalization=True, is_training=is_training, scope='conv3')#b *8*25*256
             net = conv2d(net, 256, 3, scope='conv4') #b*8*25*256
             # net = custom_layers.pad2d(net, pad=(0, 1))#b*8*27*256
-            net = slim.max_pool2d(net, [2, 2], stride =[2,1], scope='pool3')#b*4*26*256
+            net = slim.max_pool2d(net, [2, 2], stride =[2,1], padding='SAME', scope='pool3')#b*4*26*256
             print('pool_3', net.shape)
             #net = slim.max_pool2d(net,[2,2],stride =[2,1],padding ="SAME")
             net = conv2d(net, 512, 3, batchNormalization=True, is_training=is_training, scope='conv5') #b*4*26*512
             net = conv2d(net, 512, 3, scope='conv6') #b*4*26*512
             # net = custom_layers.pad2d(net, pad=(0, 1))#b*4*28*512
-            net = slim.max_pool2d(net, [2, 2], stride =[2,1], scope='pool4') #b*2*27*512
+            net = slim.max_pool2d(net, [2, 2], stride =[2,1], padding='SAME', scope='pool4') #b*2*27*512
             print("pool_4", net.shape)
             net = conv2d(net, 512, 2, batchNormalization=True, is_training=is_training, padding='VALID', scope='conv7') #b*1*26*512
             print("conv7",net.shape)
@@ -209,8 +209,9 @@ class CRNNNet(object):
                scope='ctc_losses'):
         """Define the network losses.
         """
-        with tf.name_scope(scope):
-            loss = tf.nn.ctc_loss(targets, logits, seq_len, time_major=False)
-            cost = tf.reduce_mean(loss)
+        with tf.control_dependencies([tf.less_equal(targets.dense_shape[1], tf.reduce_max(tf.cast(seq_len, tf.int64)))]):
+            with tf.name_scope(scope):
+                loss = tf.nn.ctc_loss(targets, logits, seq_len, time_major=False, ignore_longer_outputs_than_inputs=True)
+                cost = tf.reduce_mean(loss)
 
         return cost
