@@ -1,3 +1,4 @@
+from __future__ import print_function
 import tensorflow as tf
 # from deployment import model_deploy
 # from net import model_save as model
@@ -7,6 +8,7 @@ import time
 from net import model
 from dataset import read_utils
 from tensorflow.python import debug as tf_debug
+import numpy as np
 
 
 
@@ -74,7 +76,7 @@ def main(_):
 
         # Build Model
         crnn = model.CRNNNet()
-        with tf.variabl_scope('crnn'):
+        with tf.variable_scope('crnn'):
             logits, seq_len = crnn.net(sh_images, is_training=True)
             tf.get_variable_scope().reuse_variables()
             val_logits, val_seq_len = crnn.net(val_images, is_training=False)
@@ -84,7 +86,7 @@ def main(_):
 
         val_loss = crnn.losses(val_labels, val_logits, val_seq_len)
         # TODO: BK-tree NN search
-        decoded, log_prob = tf.nn.ctc_beam_search_decoder(val_logits, val_seq_len, merge_repeated=False)
+        decoded, log_prob = tf.nn.ctc_beam_search_decoder(tf.transpose(val_logits, perm=[1, 0, 2]), val_seq_len, merge_repeated=False)
 
         acc = tf.reduce_mean(tf.edit_distance(tf.cast(decoded[0], tf.int32), val_labels))
 

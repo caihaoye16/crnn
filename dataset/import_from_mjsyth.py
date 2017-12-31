@@ -7,8 +7,8 @@ import glob
 import sys
 from utils import int64_feature,bytes_feature,load_label_from_imglist,load_image,encode_labels
 
-tf_filename = os.path.join("../tfrecord","mjtrain_train.tfrecords")
-data_prefix = "../data/mnt/ramdisk/max/90kDICT32px/"
+tf_filename = os.path.join("/mnt/sdb/mark/mjsyth/","mjtrain_test.tfrecords")
+data_prefix = "/mnt/sdb/mark/mjsyth/ramdisk/max/90kDICT32px/"
 
 
 imgLists = []
@@ -25,7 +25,7 @@ imgLists = []
 #     imgLists.extend(imgList)
 
 
-split_file = "/home/mark/Downloads/mnt/ramdisk/max/90kDICT32px/annotation_train.txt"
+split_file = "/mnt/sdb/mark/mjsyth/ramdisk/max/90kDICT32px/annotation_val.txt"
 
 
 with open(split_file, 'r') as f:

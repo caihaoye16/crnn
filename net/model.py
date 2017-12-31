@@ -41,7 +41,7 @@ class CRNNNet(object):
         nh = 100,#size of the lstm hidden state
         imgH = 64,#the height / width of the input image to network
         nc = 1,
-        nclass = 37,#0~9,a~z,还有一个啥都不是
+        nclass = 63,#
         batch_size= 32,
         seq_length = 26,
         input_size = 512,
@@ -122,7 +122,7 @@ class CRNNNet(object):
 
             with tf.variable_scope(scope):
                 outputs = inputs
-                for i in num_layers:
+                for i in range(num_layers):
                     with tf.variable_scope('layer_%d' %i):
                         # Define lstm cells with tensorflow
                         # Forward direction cell
@@ -133,7 +133,7 @@ class CRNNNet(object):
                         outputs, _ = tf.nn.bidirectional_dynamic_rnn(lstm_fw_cell, lstm_bw_cell, outputs, dtype=tf.float32)
                         outputs = tf.concat(outputs, 2)
 
-                output_list = tf.unstack(outputs, 1)
+                output_list = tf.unstack(outputs, axis=1)
                 final_output = []
                 for output in output_list:
 
