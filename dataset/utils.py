@@ -76,13 +76,14 @@ def load_label_from_img_dir(img_dir):
         return str[0]
 
 
-def load_image(img_dir, width = 100, height = 32):
+def load_image(img_dir, width = 300, height = 32):
     """
     :param img_dir:
     :return:img_data
      load image and resize it
     """
     data = Image.open(img_dir)
+    h, w, _ = data.shape
     data = data.resize([width,height])
     data = data.tobytes()
     return data
