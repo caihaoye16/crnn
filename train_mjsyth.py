@@ -100,7 +100,7 @@ def main(_):
 
         starter_learning_rate = FLAGS.learning_rate
         learning_rate = tf.train.exponential_decay(starter_learning_rate, global_step,
-                                                   100000, 0.96, staircase=True)
+                                                   500000, 0.5, staircase=True)
         tf.summary.scalar("train/learning_rate",learning_rate)
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
@@ -109,7 +109,7 @@ def main(_):
 
         # Start Training
         with tf.Session(config=config) as sess:
-            save = tf.train.Saver(max_to_keep=10)
+            save = tf.train.Saver(max_to_keep=50)
 
             if not FLAGS.load:
                 init_op = tf.group(tf.global_variables_initializer(),
@@ -145,7 +145,7 @@ def main(_):
                     file_writer.add_summary(merged_t, step)
 
                     # Print an overview fairly often.
-                    if step % 5000 == 0:
+                    if step % 10000 == 0:
                         #######################################################
 
                         val_loss_s, val_acc_s = 0, 0
