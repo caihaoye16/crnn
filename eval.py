@@ -95,6 +95,7 @@ def main(_):
         decoded, log_prob = tf.nn.ctc_beam_search_decoder(tf.transpose(val_logits, perm=[1, 0, 2]), val_seq_len, merge_repeated=False)
 
         acc = tf.reduce_mean(tf.edit_distance(tf.cast(decoded[0], tf.int32), val_labels, normalize=False))
+        acc_norm = tf.reduce_mean(tf.edit_distance(tf.cast(decoded[0], tf.int32), val_labels))
 
 
 
@@ -118,7 +119,7 @@ def main(_):
 
             with open(FLAGS.gt_file, 'r') as f:
 
-                val_loss_s, val_acc_s = 0, 0
+                val_loss_s, val_acc_s, val_acc_norm_s = 0, 0, 0
                 counter = 0
                 for line in f:
                     print(line)
@@ -152,22 +153,24 @@ def main(_):
 
 
 
-                    output_label, te_acc = sess.run([decoded, acc], feed_dict={
+                    output_label, te_acc, te_acc_norm = sess.run([decoded, acc, acc_norm], feed_dict={
                         val_images: img,
                         val_labels: (indices, values, shape)
                         })
                     val_loss_s += 0
                     val_acc_s += te_acc
+                    val_acc_norm_s += te_acc_norm
                     counter += 1
 
                     print(img_file, code2str(output_label[0].values))
 
                 val_loss_s /= counter
                 val_acc_s /= counter
+                val_acc_norm_s /= counter
 
                         
                         
-                print('loss %.3f acc %.3f' % (val_loss_s, val_acc_s))
+                print('loss %.3f acc %.3f %.3f' % (val_loss_s, val_acc_s, val_acc_norm_s))
 
 
 

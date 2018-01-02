@@ -88,13 +88,16 @@ def main(_):
         # TODO: BK-tree NN search
         decoded, log_prob = tf.nn.ctc_beam_search_decoder(tf.transpose(val_logits, perm=[1, 0, 2]), val_seq_len, merge_repeated=False)
 
-        acc = tf.reduce_mean(tf.edit_distance(tf.cast(decoded[0], tf.int32), val_labels))
+        acc = tf.reduce_mean(tf.edit_distance(tf.cast(decoded[0], tf.int32), val_labels, normalize=False))
+        acc_norm = tf.reduce_mean(tf.edit_distance(tf.cast(decoded[0], tf.int32), val_labels))
 
         val_loss_sum = tf.placeholder(tf.float32, name='val_loss_sum')
         val_acc_sum = tf.placeholder(tf.float32, name='val_acc_sum')
+        val_acc_norm_sum = tf.placeholder(tf.float32, name='val_acc_norm_sum')
 
         tf.summary.scalar("test/val_loss", val_loss_sum)
         tf.summary.scalar("test/edit_distance", val_acc_sum)
+        tf.summary.scalar("test/edit_distance_norm", val_acc_norm_sum)
 
 
 
@@ -148,18 +151,20 @@ def main(_):
                     if step % 10000 == 0:
                         #######################################################
 
-                        val_loss_s, val_acc_s = 0, 0
+                        val_loss_s, val_acc_s, val_acc_norm_s = 0, 0, 0
                         for ite in range(FLAGS.sample_size):
-                            te_loss, te_acc = sess.run([val_loss, acc])
+                            te_loss, te_acc, te_acc_norm = sess.run([val_loss, acc, acc_norm])
                             val_loss_s += te_loss
                             val_acc_s += te_acc
+                            val_acc_norm_s += te_acc_norm
                         val_loss_s /= FLAGS.sample_size
                         val_acc_s /= FLAGS.sample_size
+                        val_acc_norm_s /= FLAGS.sample_size
 
-                        print('Step %d: loss %.3f acc %.3f (%.3f sec)' % (step, val_loss_s, val_acc_s, duration))
+                        print('Step %d: loss %.3f acc %.3f %.3f (%.3f sec)' % (step, val_loss_s, val_acc_s, val_acc_norm_s, duration))
 
                         # Add summary
-                        val_sum = sess.run(val_merged, feed_dict={val_loss_sum: val_loss_s, val_acc_sum: val_acc_s})
+                        val_sum = sess.run(val_merged, feed_dict={val_loss_sum: val_loss_s, val_acc_sum: val_acc_s, val_acc_norm_sum: val_acc_norm_s})
                         file_writer.add_summary(val_sum, step)
 
                         save.save(sess, os.path.join(FLAGS.checkpoint_dir, 'model.ckpt'), global_step=step)
