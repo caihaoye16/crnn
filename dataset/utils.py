@@ -76,7 +76,7 @@ def load_label_from_img_dir(img_dir):
         return str[0]
 
 
-def load_image(img_dir, width = 400, height = 32):
+def load_image(img_dir, width = 200, height = 32):
     """
     :param img_dir:
     :return:img_data
@@ -86,11 +86,14 @@ def load_image(img_dir, width = 400, height = 32):
     w, h = data.size
     # print(w, h)
     ratio = height / float(h)
-    data = data.resize([int(ratio*w), height])
-    # print(data.size)
-    container = Image.new('RGB', (width, height))
-    container.paste(data)
-    data = container
+    if int(ratio*w) > width:
+        data = data.resize([width, height])
+    else:
+        data = data.resize([int(ratio*w), height])
+        # print(data.size)
+        container = Image.new('RGB', (width, height))
+        container.paste(data)
+        data = container
     # print(data.size)
     data = data.tobytes()
     return data
