@@ -67,8 +67,8 @@ def main(_):
         # Create global_step.
         global_step = tf.Variable(0, name='global_step', trainable=False)
 
-        tr_file_name = os.path.join("/mnt/sdb/mark/mjsyth", "mjtrain_train.tfrecords")
-        te_file_name = os.path.join("/mnt/sdb/mark/mjsyth", "mjtrain_test.tfrecords")
+        tr_file_name = os.path.join("/mnt/sdb/mark/mjsyth", "mjsynth_train.tfrecords")
+        te_file_name = os.path.join("/mnt/sdb/mark/mjsyth", "mjsynth_val.tfrecords")
 
         sh_images, sh_labels, sh_length= read_utils.inputs( filename=[tr_file_name], batch_size=batch_size, num_epochs=num_epochs)
         val_images, val_labels, val_length= read_utils.inputs( filename=[te_file_name], batch_size=batch_size, num_epochs=1000)

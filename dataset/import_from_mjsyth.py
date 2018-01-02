@@ -29,7 +29,12 @@ split_file = "/mnt/sdb/mark/mjsyth/ramdisk/max/90kDICT32px/annotation_train.txt"
 
 
 with open(split_file, 'r') as f:
+    # i = 0
     for line in f:
+        # if i > 10:
+        #     break
+
+        # i+=1
         img_file = line.split(' ')[0]
         imgLists.append(os.path.join(data_prefix, img_file))
 

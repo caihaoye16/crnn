@@ -52,3 +52,6 @@ logs/
 checkpoint/
 *.swp
 */*.swp
+ckpt/
+logs*/
+ckpt*/

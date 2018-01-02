@@ -76,15 +76,22 @@ def load_label_from_img_dir(img_dir):
         return str[0]
 
 
-def load_image(img_dir, width = 300, height = 32):
+def load_image(img_dir, width = 400, height = 32):
     """
     :param img_dir:
     :return:img_data
      load image and resize it
     """
     data = Image.open(img_dir)
-    h, w, _ = data.shape
-    data = data.resize([width,height])
+    w, h = data.size
+    # print(w, h)
+    ratio = height / float(h)
+    data = data.resize([int(ratio*w), height])
+    # print(data.size)
+    container = Image.new('L', (width, height))
+    container.paste(data)
+    data = container
+    # print(data.size)
     data = data.tobytes()
     return data
 
