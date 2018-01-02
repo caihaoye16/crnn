@@ -88,7 +88,7 @@ def load_image(img_dir, width = 400, height = 32):
     ratio = height / float(h)
     data = data.resize([int(ratio*w), height])
     # print(data.size)
-    container = Image.new('L', (width, height))
+    container = Image.new('RGB', (width, height))
     container.paste(data)
     data = container
     # print(data.size)

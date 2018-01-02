@@ -15,7 +15,7 @@ def read_and_decode(filenames, num_epochs):  # read iris_contact.tfrecords
 
     # Preprocessing Here
     img = tf.decode_raw(features['image/encoded'], tf.uint8)
-    img = tf.reshape(img, [32, 400, 1])  
+    img = tf.reshape(img, [32, 400, 3])  
     # img = tf.image.rgb_to_grayscale(img)
     img = tf.cast(img, tf.float32) * (1. / 255) - 0.5  # throw img tensor
     label = features['label/value']  # throw label tensor
