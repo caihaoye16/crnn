@@ -1,11 +1,13 @@
 """
 this is an implement to load img from mjsyth.tar
 """
+from __future__ import print_function
 import tensorflow as tf
 import os
 import glob
 import sys
 from utils import int64_feature,bytes_feature,load_label_from_imglist,load_image,encode_labels
+import numpy as np
 
 tf_filename = os.path.join("/mnt/sdb/mark/mjsyth/","mjsynth_train.tfrecords")
 data_prefix = "/mnt/sdb/mark/mjsyth/ramdisk/max/90kDICT32px/"
@@ -31,6 +33,8 @@ split_file = "/mnt/sdb/mark/mjsyth/ramdisk/max/90kDICT32px/annotation_train.txt"
 with open(split_file, 'r') as f:
     # i = 0
     for line in f:
+        if np.random.uniform(0, 1) < 0.3:
+            continue
         # if i > 10:
         #     break
 

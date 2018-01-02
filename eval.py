@@ -8,6 +8,7 @@ import time
 from net import model
 from dataset import read_utils
 from tensorflow.python import debug as tf_debug
+from PIL import Image
 import numpy as np
 from dataset.utils import char_list
 
@@ -74,9 +75,13 @@ def main(_):
         # deploy_config = model_deploy.DeploymentConfig()
         # Create global_step.
         
-        val_images = tf.placeholder(tf.float32, shape=[None, 32, 400, 3], name='input_img')
-        val_labels = tf.sparse_placeholder(tf.float32, name='input_labels')
+        val_images = tf.placeholder(tf.float32, shape=[1, 32, 100, 3], name='input_img')
+        val_labels = tf.sparse_placeholder(tf.int32, name='input_labels')
+        #indices = tf.placeholder(tf.int32, [None, 2])
+        #values = tf.placeholder(tf.int32, [None])
+        #shape = tf.placeholder(tf.int32, [2])
 
+        #val_labels = tf.SparseTensor(indices, values, shape)
 
 
         # Build Model
@@ -89,7 +94,7 @@ def main(_):
         # TODO: BK-tree NN search
         decoded, log_prob = tf.nn.ctc_beam_search_decoder(tf.transpose(val_logits, perm=[1, 0, 2]), val_seq_len, merge_repeated=False)
 
-        acc = tf.reduce_mean(tf.edit_distance(tf.cast(decoded[0], tf.int32), val_labels))
+        acc = tf.reduce_mean(tf.edit_distance(tf.cast(decoded[0], tf.int32), val_labels, normalize=False))
 
 
 
@@ -116,13 +121,24 @@ def main(_):
                 val_loss_s, val_acc_s = 0, 0
                 counter = 0
                 for line in f:
-
+                    print(line)
+                    line = line.replace('\xef\xbb\xbf','')
+                    line = line.replace('\r\n','')
                     # parse each line
-                    img_file = line.split(' ')[0][:-1]
-                    img_label = line.split(' ')[1][1:-1]
+                    img_file = line.split(', ')[0]
+                    img_label = line.split(', ')[1][1:-1]
                     print(img_file, img_label)
 
-                    img = Image.open(img_file)
+                    img = Image.open(os.path.join(FLAGS.data_dir, img_file))
+                    # w, h = img.size
+                    # # print(w, h)
+                    # ratio = 32 / float(h)
+                    # data = data.resize([int(ratio*w), 32])
+                    # # print(data.size)
+                    # container = Image.new('RGB', (32, 100))
+                    # container.paste(img)
+                    # img = container
+                    img = img.resize([100, 32])
                     img = np.asarray(img, np.float32)
                     img = np.expand_dims(img, axis=0)
 
@@ -136,15 +152,15 @@ def main(_):
 
 
 
-                    output_label, te_loss, te_acc = sess.run([decoded, val_loss, acc], feed_dict={
+                    output_label, te_acc = sess.run([decoded, acc], feed_dict={
                         val_images: img,
                         val_labels: (indices, values, shape)
                         })
-                    val_loss_s += te_loss
+                    val_loss_s += 0
                     val_acc_s += te_acc
                     counter += 1
 
-                    print(img_file, code2str(output_label[0]))
+                    print(img_file, code2str(output_label[0].values))
 
                 val_loss_s /= counter
                 val_acc_s /= counter
