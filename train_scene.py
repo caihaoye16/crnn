@@ -120,6 +120,7 @@ def main(_):
 
 
             if not FLAGS.load:
+                base_step = 0
                 init_op = tf.group(tf.global_variables_initializer(),
                                    tf.local_variables_initializer())
 
