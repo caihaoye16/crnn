@@ -9,8 +9,8 @@ import sys
 from utils import int64_feature,bytes_feature,load_label_from_imglist,load_image,encode_labels
 import numpy as np
 
-tf_filename = os.path.join("/mnt/sdb/mark/coco/","coco_train.tfrecords")
-data_prefix = "/home/mark/Downloads/COCO-Text-words-trainval/train_words/"
+tf_filename = os.path.join("/mnt/sdb/mark/coco/","coco_val.tfrecords")
+data_prefix = "/home/mark/Downloads/COCO-Text-words-trainval/val_words/"
 
 
 imgLists = []
@@ -27,7 +27,7 @@ imgLists = []
 #     imgLists.extend(imgList)
 
 
-split_file = "/home/mark/Downloads/COCO-Text-words-trainval/train_words_gt.txt"
+split_file = "/home/mark/Downloads/COCO-Text-words-trainval/val_words_gt.txt"
 
 
 with open(split_file, 'r') as f:
@@ -40,10 +40,15 @@ with open(split_file, 'r') as f:
         #     break
 
         # i+=1
+        print(line)
+        line = line.replace('\r\n','')
         img_file = line.split(',')[0]+'.jpg'
+        if len(line) < 10:
+            continue
         start = line.find(',')
         label = line[start+1:]
         labels.append(label)
+        print(img_file, label)
         imgLists.append(os.path.join(data_prefix, img_file))
 
 
