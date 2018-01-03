@@ -1,4 +1,5 @@
 import tensorflow as tf
+from utils import HEIGHT, WIDTH
 
 def read_and_decode(filenames, num_epochs):  # read iris_contact.tfrecords
     filename_queue = tf.train.string_input_producer(filenames, num_epochs=num_epochs)
@@ -15,7 +16,7 @@ def read_and_decode(filenames, num_epochs):  # read iris_contact.tfrecords
 
     # Preprocessing Here
     img = tf.decode_raw(features['image/encoded'], tf.uint8)
-    img = tf.reshape(img, [32, 400, 3])  
+    img = tf.reshape(img, [HEIGHT, WIDTH, 3])  
     # img = tf.image.rgb_to_grayscale(img)
     img = tf.cast(img, tf.float32) * (1. / 255) - 0.5  # throw img tensor
     label = features['label/value']  # throw label tensor

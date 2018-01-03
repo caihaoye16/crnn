@@ -4,6 +4,8 @@ from PIL import Image
 import numpy as np
 
 char_list = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz "
+WIDTH = 200
+HEIGHT = 32
 
 def int64_feature(value):
     """Wrapper for inserting int64 features into Example proto.
@@ -76,7 +78,7 @@ def load_label_from_img_dir(img_dir):
         return str[0]
 
 
-def load_image(img_dir, width = 200, height = 32):
+def load_image(img_dir, width = WIDTH, height = HEIGHT):
     """
     :param img_dir:
     :return:img_data
@@ -100,22 +102,22 @@ def load_image(img_dir, width = 200, height = 32):
 
 
 def char_to_int(char):
-    temp = ord(char)
-    if temp>=97 and temp<=122:
-        temp = temp-97+10+26
-    else:
-        if temp >= 65 and temp <= 90:
-            temp -= 55
-        else:
-            if temp>=48 and temp<=57:
-                temp -= 48
-            else:
-                temp = 62
+    temp = ord(char) - 32
+    # if temp>=97 and temp<=122:
+    #     temp = temp-97+10+26
+    # else:
+    #     if temp >= 65 and temp <= 90:
+    #         temp -= 55
+    #     else:
+    #         if temp>=48 and temp<=57:
+    #             temp -= 48
+    #         else:
+    #             temp = 62
     return temp
 
 
 def int_to_char(number):
-    return char_list[number]
+    return chr(number)
 
 
 

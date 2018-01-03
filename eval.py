@@ -10,7 +10,7 @@ from dataset import read_utils
 from tensorflow.python import debug as tf_debug
 from PIL import Image
 import numpy as np
-from dataset.utils import char_list
+from dataset.utils import char_list, HEIGHT, WIDTH
 
 
 
@@ -75,7 +75,7 @@ def main(_):
         # deploy_config = model_deploy.DeploymentConfig()
         # Create global_step.
         
-        val_images = tf.placeholder(tf.float32, shape=[1, 32, 100, 3], name='input_img')
+        val_images = tf.placeholder(tf.float32, shape=[1, HEIGHT, WIDTH, 3], name='input_img')
         val_labels = tf.sparse_placeholder(tf.int32, name='input_labels')
         #indices = tf.placeholder(tf.int32, [None, 2])
         #values = tf.placeholder(tf.int32, [None])
@@ -139,7 +139,7 @@ def main(_):
                     # container = Image.new('RGB', (32, 100))
                     # container.paste(img)
                     # img = container
-                    img = img.resize([100, 32])
+                    img = img.resize([WIDTH, HEIGHT])
                     img = np.asarray(img, np.float32)
                     img = np.expand_dims(img, axis=0)
 
