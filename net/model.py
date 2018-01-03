@@ -41,7 +41,7 @@ class CRNNNet(object):
         nh = 100,#size of the lstm hidden state
         imgH = 64,#the height / width of the input image to network
         nc = 1,
-        nclass = 95,#
+        nclass = 95+1,#
         batch_size= 32,
         seq_length = 26,
         input_size = 512,

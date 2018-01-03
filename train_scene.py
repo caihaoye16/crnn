@@ -67,8 +67,8 @@ def main(_):
         # Create global_step.
         global_step = tf.placeholder(tf.int64, name='global_step')
 
-        tr_file_names = [os.path.join("/mnt/sdb/mark/mjsyth", "coco_train.tfrecords"), os.path.join("/mnt/sdb/mark/mjsyth", "ch4_train.tfrecords")]
-        te_file_names = [os.path.join("/mnt/sdb/mark/mjsyth", "coco_val.tfrecords"), os.path.join("/mnt/sdb/mark/mjsyth", "ch4_val.tfrecords")]
+        tr_file_names = [os.path.join("/mnt/sdb/mark/coco", "coco_train.tfrecords"), os.path.join("/mnt/sdb/mark/ch4", "ch4_train.tfrecords")]
+        te_file_names = [os.path.join("/mnt/sdb/mark/coco", "coco_val.tfrecords")]
 
         sh_images, sh_labels, sh_length= read_utils.inputs( filename=tr_file_names, batch_size=batch_size, num_epochs=num_epochs)
         val_images, val_labels, val_length= read_utils.inputs( filename=te_file_names, batch_size=batch_size, num_epochs=1000)
@@ -108,13 +108,14 @@ def main(_):
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):        
-            optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss=loss, global_step=global_step)
+            optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss=loss)
 
         # Start Training
         with tf.Session(config=config) as sess:
             save = tf.train.Saver(max_to_keep=50)
 
-            init_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='generator/first_frame_generator')
+            output_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='crnn/CRNN_net/blstm/output_layer')
+            init_vars = [v for v in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES) if v not in output_vars]
             pretrain = tf.train.Saver(var_list=init_vars)
 
 
@@ -124,6 +125,7 @@ def main(_):
 
                 sess.run(init_op)            # Start input enqueue threads.
             else:
+                base_step = int(FLAGS.ckpt_file.split('-')[-1])
 
                 if FLAGS.mode == 'raw':
                     # ckpt_file = 'model.ckpt-' + FLAGS.ckpt_step
@@ -134,7 +136,8 @@ def main(_):
                 elif FLAGS.mode == 'pretrain':
                     ckpt_path = os.path.join(FLAGS.checkpoint_dir, FLAGS.ckpt_file)
                     pretrain.restore(sess, ckpt_path)
-                    sess.run(tf.local_variables_initializer())
+                    init_op = tf.group(tf.local_variables_initializer(), tf.variables_initializer(var_list=output_vars))
+                    sess.run(init_op)
 
 
             coord = tf.train.Coordinator()
@@ -147,10 +150,11 @@ def main(_):
 
             try:
 
+                step = 0
                 while not coord.should_stop():
                     start_time = time.time()
 
-                    _, merged_t, tr_loss, lr, step, db_lables, db_images, db_logits = sess.run([optimizer, merged, loss, learning_rate, global_step, sh_labels, sh_images, logits])
+                    _, merged_t, tr_loss, lr, step, db_lables, db_images, db_logits = sess.run([optimizer, merged, loss, learning_rate, global_step, sh_labels, sh_images, logits], feed_dict={global_step: step})
 
                     duration = time.time() - start_time
 
@@ -158,7 +162,7 @@ def main(_):
                     file_writer.add_summary(merged_t, step)
 
                     # Print an overview fairly often.
-                    if step % 10000 == 0:
+                    if step % 10000 == 0 and step > 0:
                         #######################################################
 
                         val_loss_s, val_acc_s, val_acc_norm_s = 0, 0, 0
@@ -177,7 +181,8 @@ def main(_):
                         val_sum = sess.run(val_merged, feed_dict={val_loss_sum: val_loss_s, val_acc_sum: val_acc_s, val_acc_norm_sum: val_acc_norm_s})
                         file_writer.add_summary(val_sum, step)
 
-                        save.save(sess, os.path.join(FLAGS.checkpoint_dir, 'model.ckpt'), global_step=step)
+                        save.save(sess, os.path.join(FLAGS.checkpoint_dir, 'model.ckpt'), global_step=step+base_step)
+                    step += 1
                     
             except tf.errors.OutOfRangeError:
                 print('Done training for %d epochs, %d steps.' % (num_epochs, step))
