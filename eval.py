@@ -20,6 +20,7 @@ flags.DEFINE_integer("batch_size", 64, "The size of batch images [64]")
 flags.DEFINE_integer("sample_size", 100, "The size of samples [64]")
 
 flags.DEFINE_string("data_dir", "data/", "Evaluation dataset directory.")
+flags.DEFINE_string("dataset", "coco", "Evaluation dataset.")
 flags.DEFINE_string("gt_file", "data/file.txt", "Ground truth file.")
 flags.DEFINE_string("logdir", "logs", "Directory to save log")
 flags.DEFINE_string("checkpoint_dir", "checkpoint", "Directory name to save the checkpoints [checkpoint]")
@@ -123,12 +124,24 @@ def main(_):
                 counter = 0
                 for line in f:
                     print(line)
-                    line = line.replace('\xef\xbb\xbf','')
-                    line = line.replace('\r\n','')
-                    # parse each line
-                    img_file = line.split(', ')[0]
-                    img_label = line.split(', ')[1][1:-1]
-                    print(img_file, img_label)
+                    if FLAGS.dataset == 'ch4':
+                        line = line.replace('\xef\xbb\xbf','')
+                        line = line.replace('\r\n','')
+                        # parse each line
+                        img_file = line.split(', ')[0]
+                        img_label = line.split(', ')[1][1:-1]
+                        print(img_file, img_label)
+                    if FLAGS.dataset == 'coco':
+                        line = line.replace('\r\n','')
+                        img_file = line.split(',')[0]+'.jpg'
+                        if len(line) < 10:
+                            continue
+                        start = line.find(',')
+                        img_label = line[start+1:]
+                        print(img_file, img_label)
+                        # labels.append(label)
+                        # print(img_file, label)
+                        # imgLists.append(os.path.join(data_prefix, img_file))                        
 
                     img = Image.open(os.path.join(FLAGS.data_dir, img_file))
                     # w, h = img.size
