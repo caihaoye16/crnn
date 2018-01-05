@@ -119,7 +119,7 @@ def char_to_int(char):
 
 
 def int_to_char(number):
-    return chr(number)
+    return chr(number + 32)
 
 
 
