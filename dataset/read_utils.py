@@ -1,37 +1,69 @@
 import tensorflow as tf
 from utils import HEIGHT, WIDTH
 
-def read_and_decode(filenames, num_epochs):  # read iris_contact.tfrecords
+def read_and_decode(filenames, num_epochs, preprocess=False):  # read iris_contact.tfrecords
     filename_queue = tf.train.string_input_producer(filenames, num_epochs=num_epochs)
     reader = tf.TFRecordReader()
 
     _, serialized_example = reader.read(filename_queue)  # return file_name and file
-    features = tf.parse_single_example(serialized_example,
-                                       features={
-                                           'image/encoded': tf.FixedLenFeature((), tf.string, default_value=''),
-                                           'image/format': tf.FixedLenFeature((), tf.string, default_value='jpg'),
-                                           'label/value': tf.VarLenFeature(tf.int64),
-                                           'label/length': tf.FixedLenFeature([1], tf.int64)
-                                       })  # return image and label
 
-    # Preprocessing Here
-    img = tf.decode_raw(features['image/encoded'], tf.uint8)
-    img = tf.reshape(img, [HEIGHT, WIDTH, 3])  
-    # img = tf.image.rgb_to_grayscale(img)
-    img = tf.cast(img, tf.float32) * (1. / 255) - 0.5  # throw img tensor
-    label = features['label/value']  # throw label tensor
-    label = tf.cast(label, tf.int32)
-    length = features["label/length"]
+    if not preprocess:    
+        features = tf.parse_single_example(serialized_example,
+                                           features={
+                                               'image/encoded': tf.FixedLenFeature((), tf.string, default_value=''),
+                                               'image/format': tf.FixedLenFeature((), tf.string, default_value='jpg'),
+                                               'label/value': tf.VarLenFeature(tf.int64),
+                                               'label/length': tf.FixedLenFeature([1], tf.int64)
+                                           })  # return image and label
+
+        # Preprocessing Here
+
+        img = tf.decode_raw(features['image/encoded'], tf.uint8)
+        img = tf.reshape(img, [HEIGHT, WIDTH, 3])  
+        # img = tf.image.rgb_to_grayscale(img)
+        img = tf.cast(img, tf.float32) * (1. / 255) - 0.5  # throw img tensor
+        label = features['label/value']  # throw label tensor
+        label = tf.cast(label, tf.int32)
+        length = features["label/length"]
+    else:
+        features = tf.parse_single_example(serialized_example,
+                                           features={
+                                               'image/encoded': tf.FixedLenFeature((), tf.string, default_value=''),
+                                               'image/format': tf.FixedLenFeature((), tf.string, default_value='jpg'),
+                                               'label/value': tf.VarLenFeature(tf.int64),
+                                               'label/length': tf.FixedLenFeature([1], tf.int64),
+                                               'image/width': tf.FixedLenFeature([1], tf.int64),
+                                               'image/height': tf.FixedLenFeature([1], tf.int64)
+                                           })  # return image and label        
+        img = tf.decode_raw(features['image/encoded'], tf.uint8)
+        width = features['image/width']
+        height = features['image/height']
+        img = tf.reshape(img, [height, width, 3])
+
+        # Process to HEIGHT and WIDTH  
+        ratio = HEIGHT / height
+
+        img = tf.cond(ratio * width <= WIDTH,
+                      tf.image.resize_image_with_crop_or_pad(tf.image.resize_images(img, tf.stack([HEIGHT, ratio*width], 0)), HEIGHT, WIDTH),
+                      tf.image.resize_images(img, tf.stack([HEIGHT, WIDTH], 0))
+                      )
+
+
+        img = tf.cast(img, tf.float32) * (1. / 255) - 0.5  # throw img tensor
+        label = features['label/value']  # throw label tensor
+        label = tf.cast(label, tf.int32)
+        length = features["label/length"]       
+
     return img, label, length
 
 
-def inputs(batch_size, num_epochs, filename):
+def inputs(batch_size, num_epochs, filename, preprocess=False):
     if not num_epochs: 
         num_epochs = None
     with tf.name_scope('input'):
         # Even when reading in multiple threads, share the filename
         # queue.
-        img, label, length = read_and_decode(filename, num_epochs)
+        img, label, length = read_and_decode(filename, num_epochs, preprocess)
 
         # Shuffle the examples and collect them into batch_size batches.
         # (Internally uses a RandomShuffleQueue.)

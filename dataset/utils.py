@@ -4,7 +4,7 @@ from PIL import Image
 import numpy as np
 
 char_list = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz "
-WIDTH = 300
+WIDTH = 400
 HEIGHT = 32
 
 def int64_feature(value):
@@ -100,6 +100,18 @@ def load_image(img_dir, width = WIDTH, height = HEIGHT):
     data = data.tobytes()
     return data
 
+def load_raw_image(img_dir, width = WIDTH, height = HEIGHT):
+    """
+    :param img_dir:
+    :return:img_data
+     load image and resize it
+    """
+    data = Image.open(img_dir)
+    w, h = data.size
+
+    # print(data.size)
+    data = data.tobytes()
+    return data, w, h
 
 def char_to_int(char):
     temp = ord(char) - 32

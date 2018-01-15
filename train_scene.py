@@ -70,8 +70,8 @@ def main(_):
         tr_file_names = [os.path.join("/mnt/sdb/mark/coco", "coco_train.tfrecords"), os.path.join("/mnt/sdb/mark/ch4", "ch4_train.tfrecords")]
         te_file_names = [os.path.join("/mnt/sdb/mark/coco", "coco_val.tfrecords")]
 
-        sh_images, sh_labels, sh_length= read_utils.inputs( filename=tr_file_names, batch_size=batch_size, num_epochs=num_epochs)
-        val_images, val_labels, val_length= read_utils.inputs( filename=te_file_names, batch_size=batch_size, num_epochs=1000*num_epochs)
+        sh_images, sh_labels, sh_length= read_utils.inputs( filename=tr_file_names, batch_size=batch_size, num_epochs=num_epochs, preprocess=True)
+        val_images, val_labels, val_length= read_utils.inputs( filename=te_file_names, batch_size=batch_size, num_epochs=1000*num_epochs, preprocess=True)
 
 
         # Build Model
