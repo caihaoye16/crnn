@@ -38,14 +38,15 @@ def read_and_decode(filenames, num_epochs, preprocess=False):  # read iris_conta
         img = tf.decode_raw(features['image/encoded'], tf.uint8)
         width = features['image/width']
         height = features['image/height']
-        img = tf.reshape(img, [height, width, 3])
+        shape = tf.concat([height, width, [3]], 0)
+        img = tf.reshape(img, shape)
 
         # Process to HEIGHT and WIDTH  
         ratio = HEIGHT / height
 
-        img = tf.cond(ratio * width <= WIDTH,
-                      tf.image.resize_image_with_crop_or_pad(tf.image.resize_images(img, tf.stack([HEIGHT, ratio*width], 0)), HEIGHT, WIDTH),
-                      tf.image.resize_images(img, tf.stack([HEIGHT, WIDTH], 0))
+        img = tf.cond(tf.squeeze(ratio * width <= WIDTH),
+                      lambda: tf.image.resize_image_with_crop_or_pad(tf.image.resize_images(img, tf.cast(tf.concat([[HEIGHT], ratio*width], 0), tf.int32)), HEIGHT, WIDTH),
+                      lambda: tf.image.resize_images(img, tf.cast(tf.stack([HEIGHT, WIDTH], 0), tf.int32))
                       )
 
 

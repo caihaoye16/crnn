@@ -67,11 +67,11 @@ def main(_):
         # Create global_step.
         global_step = tf.placeholder(tf.int64, name='global_step')
 
-        tr_file_names = [os.path.join("/mnt/sdb/mark/coco", "coco_train.tfrecords"), os.path.join("/mnt/sdb/mark/ch4", "ch4_train.tfrecords")]
-        te_file_names = [os.path.join("/mnt/sdb/mark/coco", "coco_val.tfrecords")]
+        tr_file_names = [os.path.join("/mnt/data-hdd1/SynthText/synthtext_crop", "synthtext_train.tfrecords")]
+        te_file_names = [os.path.join("/mnt/data-hdd1/SynthText/synthtext_crop", "synthtext_test.tfrecords")]
 
         sh_images, sh_labels, sh_length= read_utils.inputs( filename=tr_file_names, batch_size=batch_size, num_epochs=num_epochs, preprocess=True)
-        val_images, val_labels, val_length= read_utils.inputs( filename=te_file_names, batch_size=batch_size, num_epochs=1000*num_epochs, preprocess=True)
+        val_images, val_labels, val_length= read_utils.inputs( filename=te_file_names, batch_size=batch_size, num_epochs=10000*num_epochs, preprocess=True)
 
 
         # Build Model
@@ -103,7 +103,7 @@ def main(_):
 
         starter_learning_rate = FLAGS.learning_rate
         learning_rate = tf.train.exponential_decay(starter_learning_rate, global_step,
-                                                   500000, 0.5, staircase=True)
+                                                   100000, 0.5, staircase=True)
         tf.summary.scalar("train/learning_rate",learning_rate)
 
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)

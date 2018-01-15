@@ -6,10 +6,10 @@ import tensorflow as tf
 import os
 import glob
 import sys
-from utils import int64_feature,bytes_feature,load_label_from_imglist,load_image,encode_labels
+from utils import *
 import numpy as np
 
-tf_filename = os.path.join("/mnt/data-hdd1/SynthText/synthtext_crop","synthtext_train.tfrecords")
+tf_filename = os.path.join("/mnt/data-hdd1/SynthText/synthtext_crop","synthtext_test.tfrecords")
 data_prefix = "/mnt/data-hdd1/SynthText/synthtext_crop/"
 
 
@@ -27,7 +27,7 @@ imgLists = []
 #     imgLists.extend(imgList)
 
 
-split_file = "/mnt/data-hdd1/SynthText/synthtext_crop/train_gt.txt"
+split_file = "/mnt/data-hdd1/SynthText/synthtext_crop/test_gt.txt"
 
 
 with open(split_file, 'r') as f:
@@ -40,7 +40,8 @@ with open(split_file, 'r') as f:
         #     break
 
         # i+=1
-        print(line)
+
+        # print(line)
         line = line.replace('\xef\xbb\xbf','')
         line = line.replace('\r\n','')
         line = line.replace('\n','')
@@ -49,7 +50,7 @@ with open(split_file, 'r') as f:
         label = line.split(', ')[1]
 
         labels.append(label)
-        print(img_file, label)
+        # print(img_file, label)
         imgLists.append(os.path.join(data_prefix, img_file))
 
 
@@ -69,9 +70,9 @@ with tf.python_io.TFRecordWriter(tf_filename) as tfrecord_writer:
             example = tf.train.Example(features=tf.train.Features(feature={"label/value": int64_feature(labels_encode[i]),
                                                                            "image/encoded": bytes_feature(image_data),
                                                                            "label/length":int64_feature(lengths[i]),
-                                                                           'image/format': bytes_feature("jpeg")}),
+                                                                           'image/format': bytes_feature("jpeg"),
                                                                            "image/width":int64_feature(w),
-                                                                           "image/height":int64_feature(h))
+                                                                           "image/height":int64_feature(h)}))
             tfrecord_writer.write(example.SerializeToString())
         except Exception as e:
             print("Error: ",e)
