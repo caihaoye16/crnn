@@ -9,7 +9,7 @@ import sys
 from utils import *
 import numpy as np
 
-tf_filename = os.path.join("/mnt/data-hdd1/SynthText/synthtext_crop","synthtext_test.tfrecords")
+tf_filename = os.path.join("/mnt/data-hdd1/SynthText/synthtext_crop","synth_train.tfrecords")
 data_prefix = "/mnt/data-hdd1/SynthText/synthtext_crop/"
 
 
@@ -27,7 +27,7 @@ imgLists = []
 #     imgLists.extend(imgList)
 
 
-split_file = "/mnt/data-hdd1/SynthText/synthtext_crop/test_gt.txt"
+split_file = "/mnt/data-hdd1/SynthText/synthtext_crop/train_gt.txt"
 
 
 with open(split_file, 'r') as f:
@@ -66,6 +66,8 @@ with tf.python_io.TFRecordWriter(tf_filename) as tfrecord_writer:
         sys.stdout.flush()
         try:
             image_data, w, h = load_raw_image(filename)
+            if w < 3 or h < 3:
+                continue
 
             example = tf.train.Example(features=tf.train.Features(feature={"label/value": int64_feature(labels_encode[i]),
                                                                            "image/encoded": bytes_feature(image_data),
