@@ -70,16 +70,16 @@ def main(_):
         tr_file_names = [os.path.join("/mnt/sdb/mark/SynthText/", "synth_train.tfrecords")]
         te_file_names = [os.path.join("/mnt/sdb/mark/SynthText/", "synth_test.tfrecords")]
 
-        sh_images, sh_labels, sh_length= read_utils.inputs( filename=tr_file_names, batch_size=batch_size, num_epochs=num_epochs, preprocess=True)
-        val_images, val_labels, val_length= read_utils.inputs( filename=te_file_names, batch_size=batch_size, num_epochs=10000*num_epochs, preprocess=True)
+        sh_images, sh_labels, sh_length, sh_width = read_utils.inputs( filename=tr_file_names, batch_size=batch_size, num_epochs=num_epochs, preprocess=True)
+        val_images, val_labels, val_length, val_width = read_utils.inputs( filename=te_file_names, batch_size=batch_size, num_epochs=10000*num_epochs, preprocess=True)
 
 
         # Build Model
         crnn = model.CRNNNet()
         with tf.variable_scope('crnn'):
-            logits, seq_len = crnn.net(sh_images, is_training=True)
+            logits, seq_len = crnn.net(sh_images, sh_width, is_training=True)
             tf.get_variable_scope().reuse_variables()
-            val_logits, val_seq_len = crnn.net(val_images, is_training=False)
+            val_logits, val_seq_len = crnn.net(val_images, val_width, is_training=False)
 
         loss = crnn.losses(sh_labels, logits, seq_len)
         tf.summary.scalar("train/loss", loss)
@@ -157,7 +157,7 @@ def main(_):
                 while not coord.should_stop():
                     start_time = time.time()
 
-                    _, merged_t, tr_loss, lr, step, db_lables, db_images, db_logits = sess.run([optimizer, merged, loss, learning_rate, global_step, sh_labels, sh_images, logits], feed_dict={global_step: step})
+                    _, merged_t, tr_loss, lr, step, db_labels, db_images, db_logits = sess.run([optimizer, merged, loss, learning_rate, global_step, sh_labels, sh_images, logits], feed_dict={global_step: step, crnn.kp: 0.5})
 
                     duration = time.time() - start_time
 
@@ -181,7 +181,7 @@ def main(_):
                         print('Step %d: loss %.3f acc %.3f %.3f (%.3f sec)' % (step, val_loss_s, val_acc_s, val_acc_norm_s, duration))
 
                         # Add summary
-                        val_sum = sess.run(val_merged, feed_dict={val_loss_sum: val_loss_s, val_acc_sum: val_acc_s, val_acc_norm_sum: val_acc_norm_s})
+                        val_sum = sess.run(val_merged, feed_dict={val_loss_sum: val_loss_s, val_acc_sum: val_acc_s, val_acc_norm_sum: val_acc_norm_s, crnn.kp: 1.0})
                         file_writer.add_summary(val_sum, step)
 
                         save.save(sess, os.path.join(FLAGS.checkpoint_dir, 'model.ckpt'), global_step=step+base_step)

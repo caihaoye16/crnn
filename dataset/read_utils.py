@@ -46,9 +46,11 @@ def read_and_decode(filenames, num_epochs, preprocess=False):  # read iris_conta
         actual_width = tf.cast(tf.cast(width, tf.float32) * ratio, tf.int32) 
         # img = tf.Print(img, [tf.shape(img), height, width, ratio, actual_width])
 
-        img = tf.cond(tf.squeeze(actual_width <= WIDTH),
-                      lambda: tf.image.resize_image_with_crop_or_pad(tf.image.resize_images(img, tf.cast(tf.concat([[HEIGHT], actual_width], 0), tf.int32)), HEIGHT, WIDTH),
-                      lambda: tf.image.resize_images(img, [HEIGHT, WIDTH])
+        img, img_width = tf.cond(tf.squeeze(actual_width <= WIDTH),
+                      lambda: [tf.image.resize_image_with_crop_or_pad(tf.image.resize_images(img, tf.cast(tf.concat([[HEIGHT], actual_width], 0), tf.int32)), HEIGHT, WIDTH),
+                               tf.squeeze(actual_width)],
+                      lambda: [tf.image.resize_images(img, [HEIGHT, WIDTH]),
+                               WIDTH]
                       )
         # img = tf.image.resize_image_with_crop_or_pad(tf.image.resize_images(img, [HEIGHT, WIDTH/2]), HEIGHT, WIDTH)
 
@@ -57,7 +59,7 @@ def read_and_decode(filenames, num_epochs, preprocess=False):  # read iris_conta
         label = tf.cast(label, tf.int32)
         length = features["label/length"]       
 
-    return img, label, length
+    return img, label, length, img_width
 
 
 def inputs(batch_size, num_epochs, filename, preprocess=False):
@@ -66,18 +68,18 @@ def inputs(batch_size, num_epochs, filename, preprocess=False):
     with tf.name_scope('input'):
         # Even when reading in multiple threads, share the filename
         # queue.
-        img, label, length = read_and_decode(filename, num_epochs, preprocess)
+        img, label, length, width = read_and_decode(filename, num_epochs, preprocess)
 
         # Shuffle the examples and collect them into batch_size batches.
         # (Internally uses a RandomShuffleQueue.)
         # We run this in two threads to avoid being a bottleneck.
-        sh_images, sh_labels, sh_length = tf.train.shuffle_batch(
-            [img, label, length], batch_size=batch_size, num_threads=4,
+        sh_images, sh_labels, sh_length, sh_width = tf.train.shuffle_batch(
+            [img, label, length, width], batch_size=batch_size, num_threads=4,
             capacity=5000,
             # Ensures a minimum amount of shuffling of examples.
             min_after_dequeue=1000)
 
-        return sh_images, sh_labels, sh_length
+        return sh_images, sh_labels, sh_length, sh_width
 
 def preprocess_for_train(image,label ,scope='crnn_preprocessing_train'):
     """Preprocesses the given image for training.

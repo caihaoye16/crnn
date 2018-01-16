@@ -62,7 +62,7 @@ class CRNNNet(object):
             self.params = CRNNNet.default_params
 
     # ======================================================================= #
-    def net(self, inputs, is_training, width = None):
+    def net(self, inputs, img_width, is_training, width = None):
         """rcnn  network definition.
         """
 
@@ -159,9 +159,7 @@ class CRNNNet(object):
             net = tf.nn.relu(net)
             return net
 
-
-
-        with tf.variable_scope("CRNN_net",reuse=None):
+        def feature_extractor(inputs):
             net = conv2d(inputs, 64, 3, scope='conv1')#input batch_size*32*100*3 #net batch_size *32*100*64
             net = slim.max_pool2d(net, [2, 2], padding='SAME', scope='pool1')#net batch_size *16*50*64
             print("pool_0 ", net.shape)
@@ -176,18 +174,39 @@ class CRNNNet(object):
             print('pool_3', net.shape)
             #net = slim.max_pool2d(net,[2,2],stride =[2,1],padding ="SAME")
             net = conv2d(net, 512, 3, batchNormalization=True, is_training=is_training, scope='conv5') #b*4*26*512
+
+            net = tf.nn.dropout(net, self.kp)
+
             net = conv2d(net, 512, 3, scope='conv6') #b*4*26*512
+
+            net = tf.nn.dropout(net, self.kp)
+
             # net = custom_layers.pad2d(net, pad=(0, 1))#b*4*28*512
             net = slim.max_pool2d(net, [2, 2], stride =[2,1], padding='SAME', scope='pool4') #b*2*27*512
             print("pool_4", net.shape)
             net = conv2d(net, 512, 2, batchNormalization=True, is_training=is_training, padding='VALID', scope='conv7') #b*1*26*512
             print("conv7",net.shape)
 
+            net = tf.nn.dropout(net, self.kp)
+
+            return net
+
+        with tf.variable_scope("CRNN_net",reuse=None):
+
+            self.kp = tf.placeholder(tf.float32, name='keep_prob')
+
+            net = feature_extractor(inputs)
+
             net = tf.squeeze(net,[1])#B*26*512
             print("squeeze: ", net.shape)
 
-            batch_size, length, _ = net.shape.as_list()
-            seq_len = np.full(batch_size, length) # seq_len can be used to mask out the wasted length (meanwhile returned for ctc_loss calculation)
+            # get sequence lengths
+            # size after first pooling
+            # ceil(float(in_height) / float(strides[1]))
+            img_width = tf.ceil(tf.cast(img_width, tf.float32) / 2.)
+            # size after second pooling
+            img_width = tf.ceil(tf.cast(img_width, tf.float32) / 2.)
+            seq_len = img_width - 1 # seq_len can be used to mask out the wasted length (meanwhile returned for ctc_loss calculation)
 
             logits = BLSTM(net, 256, 2, self.params.nclass)
 
