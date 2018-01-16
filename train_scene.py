@@ -77,9 +77,9 @@ def main(_):
         # Build Model
         crnn = model.CRNNNet()
         with tf.variable_scope('crnn'):
-            logits, seq_len = crnn.net(sh_images, sh_width, is_training=True)
+            logits, seq_len = crnn.net(sh_images, sh_width, is_training=True, kp=0.5)
             tf.get_variable_scope().reuse_variables()
-            val_logits, val_seq_len = crnn.net(val_images, val_width, is_training=False)
+            val_logits, val_seq_len = crnn.net(val_images, val_width, is_training=False, kp=1.0)
 
         loss = crnn.losses(sh_labels, logits, seq_len)
         tf.summary.scalar("train/loss", loss)
@@ -157,7 +157,7 @@ def main(_):
                 while not coord.should_stop():
                     start_time = time.time()
 
-                    _, merged_t, tr_loss, lr, step, db_labels, db_images, db_logits = sess.run([optimizer, merged, loss, learning_rate, global_step, sh_labels, sh_images, logits], feed_dict={global_step: step, crnn.kp: 0.5})
+                    _, merged_t, tr_loss, lr, step, db_labels, db_images, db_logits = sess.run([optimizer, merged, loss, learning_rate, global_step, sh_labels, sh_images, logits], feed_dict={global_step: step})
 
                     duration = time.time() - start_time
 
@@ -181,7 +181,7 @@ def main(_):
                         print('Step %d: loss %.3f acc %.3f %.3f (%.3f sec)' % (step, val_loss_s, val_acc_s, val_acc_norm_s, duration))
 
                         # Add summary
-                        val_sum = sess.run(val_merged, feed_dict={val_loss_sum: val_loss_s, val_acc_sum: val_acc_s, val_acc_norm_sum: val_acc_norm_s, crnn.kp: 1.0})
+                        val_sum = sess.run(val_merged, feed_dict={val_loss_sum: val_loss_s, val_acc_sum: val_acc_s, val_acc_norm_sum: val_acc_norm_s})
                         file_writer.add_summary(val_sum, step)
 
                         save.save(sess, os.path.join(FLAGS.checkpoint_dir, 'model.ckpt'), global_step=step+base_step)

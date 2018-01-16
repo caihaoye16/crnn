@@ -62,7 +62,7 @@ class CRNNNet(object):
             self.params = CRNNNet.default_params
 
     # ======================================================================= #
-    def net(self, inputs, img_width, is_training, width = None):
+    def net(self, inputs, img_width, is_training, kp, width = None):
         """rcnn  network definition.
         """
 
@@ -175,11 +175,11 @@ class CRNNNet(object):
             #net = slim.max_pool2d(net,[2,2],stride =[2,1],padding ="SAME")
             net = conv2d(net, 512, 3, batchNormalization=True, is_training=is_training, scope='conv5') #b*4*26*512
 
-            net = tf.nn.dropout(net, self.kp)
+            net = tf.nn.dropout(net, kp)
 
             net = conv2d(net, 512, 3, scope='conv6') #b*4*26*512
 
-            net = tf.nn.dropout(net, self.kp)
+            net = tf.nn.dropout(net, kp)
 
             # net = custom_layers.pad2d(net, pad=(0, 1))#b*4*28*512
             net = slim.max_pool2d(net, [2, 2], stride =[2,1], padding='SAME', scope='pool4') #b*2*27*512
@@ -187,13 +187,12 @@ class CRNNNet(object):
             net = conv2d(net, 512, 2, batchNormalization=True, is_training=is_training, padding='VALID', scope='conv7') #b*1*26*512
             print("conv7",net.shape)
 
-            net = tf.nn.dropout(net, self.kp)
+            net = tf.nn.dropout(net, kp)
 
             return net
 
         with tf.variable_scope("CRNN_net",reuse=None):
 
-            self.kp = tf.placeholder(tf.float32, name='keep_prob')
 
             net = feature_extractor(inputs)
 
@@ -206,7 +205,7 @@ class CRNNNet(object):
             img_width = tf.ceil(tf.cast(img_width, tf.float32) / 2.)
             # size after second pooling
             img_width = tf.ceil(tf.cast(img_width, tf.float32) / 2.)
-            seq_len = img_width - 1 # seq_len can be used to mask out the wasted length (meanwhile returned for ctc_loss calculation)
+            seq_len = tf.cast(img_width - 1, tf.int32) # seq_len can be used to mask out the wasted length (meanwhile returned for ctc_loss calculation)
 
             logits = BLSTM(net, 256, 2, self.params.nclass)
 
