@@ -67,8 +67,8 @@ def main(_):
         # Create global_step.
         global_step = tf.placeholder(tf.int64, name='global_step')
 
-        tr_file_names = [os.path.join("/mnt/data-hdd1/SynthText/synthtext_crop", "synthtext_train.tfrecords")]
-        te_file_names = [os.path.join("/mnt/data-hdd1/SynthText/synthtext_crop", "synthtext_test.tfrecords")]
+        tr_file_names = [os.path.join("/mnt/sdb/mark/SynthText/", "synth_train.tfrecords")]
+        te_file_names = [os.path.join("/mnt/sdb/mark/SynthText/", "synth_test.tfrecords")]
 
         sh_images, sh_labels, sh_length= read_utils.inputs( filename=tr_file_names, batch_size=batch_size, num_epochs=num_epochs, preprocess=True)
         val_images, val_labels, val_length= read_utils.inputs( filename=te_file_names, batch_size=batch_size, num_epochs=10000*num_epochs, preprocess=True)
@@ -112,6 +112,8 @@ def main(_):
 
         # Start Training
         with tf.Session(config=config) as sess:
+            if FLAGS.debug:
+                sess = tf_debug.LocalCLIDebugWrapperSession(sess)
             save = tf.train.Saver(max_to_keep=50)
 
             output_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='crnn/CRNN_net/blstm/output_layer')

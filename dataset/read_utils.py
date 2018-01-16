@@ -42,15 +42,17 @@ def read_and_decode(filenames, num_epochs, preprocess=False):  # read iris_conta
         img = tf.reshape(img, shape)
 
         # Process to HEIGHT and WIDTH  
-        ratio = HEIGHT / height
+        ratio = tf.cast(HEIGHT, tf.float32) / tf.cast(height, tf.float32)
+        actual_width = tf.cast(tf.cast(width, tf.float32) * ratio, tf.int32) 
+        # img = tf.Print(img, [tf.shape(img), height, width, ratio, actual_width])
 
-        img = tf.cond(tf.squeeze(ratio * width <= WIDTH),
-                      lambda: tf.image.resize_image_with_crop_or_pad(tf.image.resize_images(img, tf.cast(tf.concat([[HEIGHT], ratio*width], 0), tf.int32)), HEIGHT, WIDTH),
-                      lambda: tf.image.resize_images(img, tf.cast(tf.stack([HEIGHT, WIDTH], 0), tf.int32))
+        img = tf.cond(tf.squeeze(actual_width <= WIDTH),
+                      lambda: tf.image.resize_image_with_crop_or_pad(tf.image.resize_images(img, tf.cast(tf.concat([[HEIGHT], actual_width], 0), tf.int32)), HEIGHT, WIDTH),
+                      lambda: tf.image.resize_images(img, [HEIGHT, WIDTH])
                       )
+        # img = tf.image.resize_image_with_crop_or_pad(tf.image.resize_images(img, [HEIGHT, WIDTH/2]), HEIGHT, WIDTH)
 
-
-        img = tf.cast(img, tf.float32) * (1. / 255) - 0.5  # throw img tensor
+        img = tf.cast(img, tf.float32) * (1. / 255.) - 0.5  # throw img tensor
         label = features['label/value']  # throw label tensor
         label = tf.cast(label, tf.int32)
         length = features["label/length"]       
