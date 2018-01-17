@@ -47,7 +47,7 @@ def read_and_decode(filenames, num_epochs, preprocess=False):  # read iris_conta
         # img = tf.Print(img, [tf.shape(img), height, width, ratio, actual_width])
 
         img, img_width = tf.cond(tf.squeeze(actual_width <= WIDTH),
-                      lambda: [tf.image.resize_image_with_crop_or_pad(tf.image.resize_images(img, tf.cast(tf.concat([[HEIGHT], actual_width], 0), tf.int32)), HEIGHT, WIDTH),
+                      lambda: [tf.image.pad_to_bounding_box(tf.image.resize_images(img, tf.cast(tf.concat([[HEIGHT], actual_width], 0), tf.int32)), 0, 0, HEIGHT, WIDTH),
                                tf.squeeze(actual_width)],
                       lambda: [tf.image.resize_images(img, [HEIGHT, WIDTH]),
                                WIDTH]

@@ -83,6 +83,7 @@ def main(_):
 
         loss = crnn.losses(sh_labels, logits, seq_len)
         tf.summary.scalar("train/loss", loss)
+        tf.summary.image("train/inputs", sh_images)
 
         val_loss = crnn.losses(val_labels, val_logits, val_seq_len)
         # TODO: BK-tree NN search
