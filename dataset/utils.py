@@ -114,8 +114,14 @@ def load_raw_image(img_dir, width = WIDTH, height = HEIGHT):
     return data, w, h
 
 def char_to_int(char):
-    temp = ord(char) - 32
-    if temp > 94 or temp < 0:
+    temp = ord(char)
+    if temp >= 97 and temp <= 122:
+        temp -= 32
+    if temp > 122:
+        temp -= 26
+        
+    temp = temp - 32
+    if temp > 68 or temp < 0:
         temp = 0
     # if temp>=97 and temp<=122:
     #     temp = temp-97+10+26

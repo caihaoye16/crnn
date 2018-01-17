@@ -57,7 +57,10 @@ def code2str(code_list):
         if FLAGS.mode == 'old':
             output += char_list[c]
         elif FLAGS.mode == 'new':
-            output += chr(c+32)
+            if c+32 >= 97:
+                output += chr(c+32+26)
+            else:
+                output += chr(c+32)
 
     return output
 
@@ -67,7 +70,13 @@ def str2code(string):
         if FLAGS.mode == 'old':
             output.append(char_list.find(c))
         elif FLAGS.mode == 'new':
-            output.append(ord(c)-32)
+            temp = ord(c)
+            if temp >= 97 and temp <= 122:
+                temp -= 32
+            if temp > 122:
+                temp -= 26
+
+            output.append(temp-32)
 
     return output
 
