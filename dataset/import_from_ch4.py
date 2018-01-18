@@ -6,7 +6,7 @@ import tensorflow as tf
 import os
 import glob
 import sys
-from utils import int64_feature,bytes_feature,load_label_from_imglist,load_image,encode_labels
+from utils import *
 import numpy as np
 
 tf_filename = os.path.join("/mnt/sdb/mark/ch4/","ch4_train.tfrecords")
@@ -63,11 +63,18 @@ with tf.python_io.TFRecordWriter(tf_filename) as tfrecord_writer:
         sys.stdout.write('\r>> Converting image %d/%d' % (i + 1, len(imgLists)))
         sys.stdout.flush()
         try:
-            image_data = load_image(filename)
+            image_data, w, h = load_raw_image(filename)
+            if w < 3 or h < 3:
+                continue
+            if w < h:
+                continue
+
             example = tf.train.Example(features=tf.train.Features(feature={"label/value": int64_feature(labels_encode[i]),
                                                                            "image/encoded": bytes_feature(image_data),
                                                                            "label/length":int64_feature(lengths[i]),
-                                                                           'image/format': bytes_feature("jpeg")}))
+                                                                           'image/format': bytes_feature("jpeg"),
+                                                                           "image/width":int64_feature(w),
+                                                                           "image/height":int64_feature(h)}))
             tfrecord_writer.write(example.SerializeToString())
         except Exception as e:
             print("Error: ",e)
