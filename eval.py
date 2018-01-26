@@ -217,12 +217,15 @@ def main(_):
 
 
 
-
+                    t1 = time.time()
                     output_label, te_acc, te_acc_norm = sess.run([decoded, acc, acc_norm], feed_dict={
                         val_images: img,
                         val_labels: (indices, values, shape),
                         val_width: actual_width
                         })
+
+                    t2 = time.time()
+                    print(t2 - t1)
                     val_loss_s += 0
                     val_acc_s += te_acc
                     val_acc_norm_s += te_acc_norm

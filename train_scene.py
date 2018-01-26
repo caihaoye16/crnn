@@ -67,8 +67,8 @@ def main(_):
         # Create global_step.
         global_step = tf.placeholder(tf.int64, name='global_step')
 
-        tr_file_names = [os.path.join("/mnt/sdb/mark/SynthText/", "synth_train.tfrecords")]
-        te_file_names = [os.path.join("/mnt/sdb/mark/SynthText/", "synth_test.tfrecords")]
+        tr_file_names = [os.path.join("/mnt/sdb/mark/SynthText/", "synthtext_train.tfrecords")]
+        te_file_names = [os.path.join("/mnt/sdb/mark/SynthText/", "synthtext_test.tfrecords")]
 
         sh_images, sh_labels, sh_length, sh_width = read_utils.inputs( filename=tr_file_names, batch_size=batch_size, num_epochs=num_epochs, preprocess=True)
         val_images, val_labels, val_length, val_width = read_utils.inputs( filename=te_file_names, batch_size=batch_size, num_epochs=10000*num_epochs, preprocess=True)

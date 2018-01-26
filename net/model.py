@@ -41,7 +41,7 @@ class CRNNNet(object):
         nh = 100,#size of the lstm hidden state
         imgH = 64,#the height / width of the input image to network
         nc = 1,
-        nclass = 95+1,#
+        nclass = 95-26+1,#
         batch_size= 32,
         seq_length = 26,
         input_size = 512,
@@ -199,13 +199,16 @@ class CRNNNet(object):
             net = tf.squeeze(net,[1])#B*26*512
             print("squeeze: ", net.shape)
 
-            # get sequence lengths
-            # size after first pooling
-            # ceil(float(in_height) / float(strides[1]))
-            img_width = tf.ceil(tf.cast(img_width, tf.float32) / 2.)
-            # size after second pooling
-            img_width = tf.ceil(tf.cast(img_width, tf.float32) / 2.)
-            seq_len = tf.cast(img_width - 1, tf.int32) # seq_len can be used to mask out the wasted length (meanwhile returned for ctc_loss calculation)
+            batch_size, length, _ = net.shape.as_list()
+            seq_len = np.full(batch_size, length)
+
+            # # get sequence lengths
+            # # size after first pooling
+            # # ceil(float(in_height) / float(strides[1]))
+            # img_width = tf.ceil(tf.cast(img_width, tf.float32) / 2.)
+            # # size after second pooling
+            # img_width = tf.ceil(tf.cast(img_width, tf.float32) / 2.)
+            # seq_len = tf.cast(img_width - 1, tf.int32) # seq_len can be used to mask out the wasted length (meanwhile returned for ctc_loss calculation)
 
             logits = BLSTM(net, 256, 2, self.params.nclass)
 
