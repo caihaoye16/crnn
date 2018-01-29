@@ -1,4 +1,5 @@
 import tensorflow as tf
+import vgg_preprocessing
 from utils import HEIGHT, WIDTH
 
 def read_and_decode(filenames, num_epochs, preprocess=False):  # read iris_contact.tfrecords

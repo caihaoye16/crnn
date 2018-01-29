@@ -77,9 +77,10 @@ def main(_):
         # Build Model
         crnn = model.CRNNNet()
 
-        logits, seq_len = crnn.net(sh_images, sh_width, is_training=True, kp=1.0)
-        tf.get_variable_scope().reuse_variables()
-        val_logits, val_seq_len = crnn.net(val_images, val_width, is_training=False, kp=1.0)
+        with tf.variable_scope('crnn'):
+            logits, seq_len = crnn.net(sh_images, sh_width, is_training=True, kp=1.0)
+            tf.get_variable_scope().reuse_variables()
+            val_logits, val_seq_len = crnn.net(val_images, val_width, is_training=False, kp=1.0)
 
         loss = crnn.losses(sh_labels, logits, seq_len)
         tf.summary.scalar("train/loss", loss)
@@ -107,9 +108,11 @@ def main(_):
                                                    100000, 0.5, staircase=True)
         tf.summary.scalar("train/learning_rate",learning_rate)
 
+        train_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
+
         update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
         with tf.control_dependencies(update_ops):        
-            optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss=loss)
+            optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss=loss, var_list=train_vars)
 
         # Start Training
         with tf.Session(config=config) as sess:
@@ -117,9 +120,9 @@ def main(_):
                 sess = tf_debug.LocalCLIDebugWrapperSession(sess)
             save = tf.train.Saver(max_to_keep=50)
 
-            raw_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='CRNN_net/')
-            init_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='ResNet/')
-            pretrain = tf.train.Saver({v.op.name.replace('ResNet/', ''): v for v in init_vars})
+            raw_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='crnn/CRNN_net/')
+            init_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='crnn/ResNet/')
+            pretrain = tf.train.Saver({v.op.name.replace('crnn/ResNet/', ''): v for v in init_vars if v.op.name.find('Adam') == -1})
 
 
             if not FLAGS.load:
@@ -142,9 +145,9 @@ def main(_):
 
                 elif FLAGS.mode == 'pretrain':
                     ckpt_path = os.path.join(FLAGS.checkpoint_dir, FLAGS.ckpt_file)
-                    pretrain.restore(sess, ckpt_path)
-                    init_op = tf.group(tf.local_variables_initializer(), tf.variables_initializer(var_list=raw_vars))
+                    init_op = tf.group(tf.local_variables_initializer(), tf.variables_initializer([v for v in init_vars if v.op.name.find('Adam') != -1] + raw_vars + [v for v in tf.global_variables() if v.op.name.find('crnn/') == -1]))
                     sess.run(init_op)
+                    pretrain.restore(sess, ckpt_path)
 
 
             coord = tf.train.Coordinator()
