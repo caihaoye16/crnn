@@ -4,6 +4,7 @@ import math
 # from net import custom_layers
 from collections import namedtuple
 from tensorflow.contrib import rnn
+import resnet
 
 slim = tf.contrib.slim
 
@@ -194,7 +195,10 @@ class CRNNNet(object):
         with tf.variable_scope("CRNN_net",reuse=None):
 
 
-            net = feature_extractor(inputs)
+            # net = feature_extractor(inputs)
+            model = resnet.imagenet_resnet_v2(50, None, 'channels_last')
+            net = model(inputs=inputs, is_training=is_training)
+            print("net shape: ", net.shape)
 
             net = tf.squeeze(net,[1])#B*26*512
             print("squeeze: ", net.shape)

@@ -77,7 +77,7 @@ def main(_):
         # Build Model
         crnn = model.CRNNNet()
         with tf.variable_scope('crnn'):
-            logits, seq_len = crnn.net(sh_images, sh_width, is_training=True, kp=0.5)
+            logits, seq_len = crnn.net(sh_images, sh_width, is_training=True, kp=1.0)
             tf.get_variable_scope().reuse_variables()
             val_logits, val_seq_len = crnn.net(val_images, val_width, is_training=False, kp=1.0)
 

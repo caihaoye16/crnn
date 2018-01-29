@@ -54,7 +54,16 @@ def read_and_decode(filenames, num_epochs, preprocess=False):  # read iris_conta
                       )
         # img = tf.image.resize_image_with_crop_or_pad(tf.image.resize_images(img, [HEIGHT, WIDTH/2]), HEIGHT, WIDTH)
 
-        img = tf.cast(img, tf.float32) * (1. / 255.) - 0.5  # throw img tensor
+        # Vallina
+        # img = tf.cast(img, tf.float32) * (1. / 255.) - 0.5  # throw img tensor
+
+        # ResNet
+        tf.cast(img, tf.float32)
+        img = vgg_preprocessing.preprocess_image(
+            image=img,
+            output_height=HEIGHT,
+            output_width=WIDTH)
+
         label = features['label/value']  # throw label tensor
         label = tf.cast(label, tf.int32)
         length = features["label/length"]       
