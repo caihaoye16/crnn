@@ -76,10 +76,10 @@ def main(_):
 
         # Build Model
         crnn = model.CRNNNet()
-        with tf.variable_scope('crnn'):
-            logits, seq_len = crnn.net(sh_images, sh_width, is_training=True, kp=1.0)
-            tf.get_variable_scope().reuse_variables()
-            val_logits, val_seq_len = crnn.net(val_images, val_width, is_training=False, kp=1.0)
+
+        logits, seq_len = crnn.net(sh_images, sh_width, is_training=True, kp=1.0)
+        tf.get_variable_scope().reuse_variables()
+        val_logits, val_seq_len = crnn.net(val_images, val_width, is_training=False, kp=1.0)
 
         loss = crnn.losses(sh_labels, logits, seq_len)
         tf.summary.scalar("train/loss", loss)
@@ -117,9 +117,9 @@ def main(_):
                 sess = tf_debug.LocalCLIDebugWrapperSession(sess)
             save = tf.train.Saver(max_to_keep=50)
 
-            output_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='crnn/CRNN_net/blstm/output_layer')
-            init_vars = [v for v in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES) if v not in output_vars]
-            pretrain = tf.train.Saver(var_list=init_vars)
+            raw_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='CRNN_net/')
+            init_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='ResNet/')
+            pretrain = tf.train.Saver({v.op.name.replace('ResNet/', ''): v for v in init_vars})
 
 
             if not FLAGS.load:
@@ -129,7 +129,10 @@ def main(_):
 
                 sess.run(init_op)            # Start input enqueue threads.
             else:
-                base_step = int(FLAGS.ckpt_file.split('-')[-1])
+                try:
+                    base_step = int(FLAGS.ckpt_file.split('-')[-1])
+                except:
+                    base_step = 0
 
                 if FLAGS.mode == 'raw':
                     # ckpt_file = 'model.ckpt-' + FLAGS.ckpt_step
@@ -140,7 +143,7 @@ def main(_):
                 elif FLAGS.mode == 'pretrain':
                     ckpt_path = os.path.join(FLAGS.checkpoint_dir, FLAGS.ckpt_file)
                     pretrain.restore(sess, ckpt_path)
-                    init_op = tf.group(tf.local_variables_initializer(), tf.variables_initializer(var_list=output_vars))
+                    init_op = tf.group(tf.local_variables_initializer(), tf.variables_initializer(var_list=raw_vars))
                     sess.run(init_op)
 
 

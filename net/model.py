@@ -192,13 +192,14 @@ class CRNNNet(object):
 
             return net
 
-        with tf.variable_scope("CRNN_net",reuse=None):
-
-
-            # net = feature_extractor(inputs)
+        with tf.variable_scope('ResNet', reuse=None):
             model = resnet.imagenet_resnet_v2(50, None, 'channels_last')
             net = model(inputs=inputs, is_training=is_training)
             print("net shape: ", net.shape)
+
+        with tf.variable_scope("CRNN_net",reuse=None):
+
+            # net = feature_extractor(inputs)
 
             net = tf.squeeze(net,[1])#B*26*512
             print("squeeze: ", net.shape)
