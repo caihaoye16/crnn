@@ -15,9 +15,12 @@ import numpy as np
 flags = tf.app.flags
 flags.DEFINE_integer("epoch", 25, "Epoch to train [25]")
 flags.DEFINE_float("learning_rate", 0.001, "Learning rate of for adam [0.0002]")
+flags.DEFINE_float("lr_decay_rate", 0.5, "lr decay rate")
+flags.DEFINE_float("lr_decay_step", 100000, "lr decay step")
 flags.DEFINE_integer("train_size", np.inf, "The size of train images [np.inf]")
 flags.DEFINE_integer("batch_size", 64, "The size of batch images [64]")
 flags.DEFINE_integer("sample_size", 100, "The size of samples [64]")
+flags.DEFINE_integer("save_steps", 10000, "Steps to save")
 
 flags.DEFINE_string("dataset", "data/h36m/", "Dataset directory.")
 flags.DEFINE_string("logdir", "logs", "Directory to save log")
@@ -105,7 +108,7 @@ def main(_):
 
         starter_learning_rate = FLAGS.learning_rate
         learning_rate = tf.train.exponential_decay(starter_learning_rate, global_step,
-                                                   100000, 0.5, staircase=True)
+                                                   FLAGS.lr_decay_step, FLAGS.lr_decay_rate, staircase=True)
         tf.summary.scalar("train/learning_rate",learning_rate)
 
         train_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
@@ -172,7 +175,7 @@ def main(_):
                     file_writer.add_summary(merged_t, step)
 
                     # Print an overview fairly often.
-                    if step % 10000 == 0 and step > 0:
+                    if step % FLAGS.save_steps == 0 and step > 0:
                         #######################################################
 
                         val_loss_s, val_acc_s, val_acc_norm_s = 0, 0, 0

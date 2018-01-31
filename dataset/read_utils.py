@@ -42,6 +42,15 @@ def read_and_decode(filenames, num_epochs, preprocess=False):  # read iris_conta
         shape = tf.concat([height, width, [3]], 0)
         img = tf.reshape(img, shape)
 
+        # random resize
+        ratio = tf.random_uniform([1], maxval=0.9)
+        width = tf.cast(tf.cast(width, tf.float32) * (1 - tf.pow(ratio, 3)), tf.int32)
+        width = tf.cond(tf.squeeze(width) < 2,
+                        lambda: tf.constant([2]),
+                        lambda: width)
+        height = tf.cast(height, tf.int32)
+        img = tf.image.resize_images(img, tf.concat([height, width], 0))
+
         # Process to HEIGHT and WIDTH  
         ratio = tf.cast(HEIGHT, tf.float32) / tf.cast(height, tf.float32)
         actual_width = tf.cast(tf.cast(width, tf.float32) * ratio, tf.int32) 
@@ -59,7 +68,7 @@ def read_and_decode(filenames, num_epochs, preprocess=False):  # read iris_conta
         # img = tf.cast(img, tf.float32) * (1. / 255.) - 0.5  # throw img tensor
 
         # ResNet
-        tf.cast(img, tf.float32)
+        img = tf.cast(img, tf.float32) / 255.
         img = vgg_preprocessing.preprocess_image(
             image=img,
             output_height=HEIGHT,

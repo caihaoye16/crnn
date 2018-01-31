@@ -9,7 +9,7 @@ import sys
 from utils import *
 import numpy as np
 
-tf_filename = os.path.join("/mnt/sdb/mark/ch4/","ch4_train.tfrecords")
+tf_filename = os.path.join("/mnt/sdb/mark/ch4/","ch4_test.tfrecords")
 data_prefix = "/home/mark/Downloads/ch4_training_word_images_gt/"
 
 
@@ -27,7 +27,7 @@ imgLists = []
 #     imgLists.extend(imgList)
 
 
-split_file = "/home/mark/Downloads/ch4_training_word_images_gt/gt.txt"
+split_file = "/home/mark/Downloads/ch4_training_word_images_gt/test_gt.txt"
 
 
 with open(split_file, 'r') as f:

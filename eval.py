@@ -7,6 +7,7 @@ slim = tf.contrib.slim
 import time
 from net import model
 from dataset import read_utils
+from dataset import vgg_preprocessing
 from tensorflow.python import debug as tf_debug
 from PIL import Image
 import numpy as np
@@ -51,6 +52,10 @@ ITEMS_TO_DESCRIPTIONS = {
 }
 
 
+_R_MEAN = 123.68 / 255
+_G_MEAN = 116.78 / 255
+_B_MEAN = 103.94 / 255
+
 def code2str(code_list):
     output = ''
     for c in code_list:
@@ -79,6 +84,17 @@ def str2code(string):
             output.append(temp-32)
 
     return output
+
+def mean_image_subtraction(image, means):
+
+  num_channels = image.shape[-1]
+
+  for i in range(num_channels):
+    image[:, :, i] -= means[i]
+  return image
+
+
+
 
 # =========================================================================== #
 # Main
@@ -133,6 +149,7 @@ def main(_):
                 # ckpt_file = 'model.ckpt-' + FLAGS.ckpt_step
                 ckpt_path = os.path.join(FLAGS.checkpoint_dir, FLAGS.ckpt_file)
                 save.restore(sess, ckpt_path)
+                print("Done loading checkpoint")
                 # sess.run(tf.local_variables_initializer())
 
 
@@ -198,10 +215,15 @@ def main(_):
                     img = container
 
                     img = np.asarray(img, np.float32)
+
+                    # img = img * (1. / 255) - 0.5
+
+                    img /= 255.
+                    img = mean_image_subtraction(
+                        img,
+                        [_R_MEAN, _G_MEAN, _B_MEAN])
+
                     img = np.expand_dims(img, axis=0)
-
-                    img = img * (1. / 255) - 0.5
-
 
                     str_label = img_label
                     if FLAGS.case_insensitive:
